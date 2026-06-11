@@ -1220,4 +1220,44 @@ function renderInsights(){
     :'<div class="empty"><div class="empty-title">Not enough data yet</div>The patterns will surface as you log.</div>';
 }
 
-// ═══════════════════════════
+
+// ══════════════════════════════════════════
+// BACKUP
+// ══════════════════════════════════════════
+document.getElementById('backup-export').addEventListener('click',()=>{
+  const data={mornings,evenings,activities,bucket,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='felt-backup-'+todayStr()+'.json';
+  a.click();
+});
+document.getElementById('backup-import').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.mornings) mornings=data.mornings;
+      if(data.evenings) evenings=data.evenings;
+      if(data.activities) activities=data.activities;
+      if(data.bucket) bucket=data.bucket;
+      save(KEYS.mornings,mornings);save(KEYS.evenings,evenings);
+      save(KEYS.activities,activities);save(KEYS.bucket,bucket);
+      alert('Restored. Navigate to each tab to see your data.');
+    }catch{alert('Could not read that file.');}
+  };
+  reader.readAsText(file);
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderMorningHistory();
+renderActivities();
+renderEveningHistory();
+renderBucket();
+</script>
+</body>
+</html>
