@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FELT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #1C2331;
+  --surface:   #2E3545;
+  --surface2:  #3A4257;
+  --bone:      #EDE9E0;
+  --bone-dim:  #A8A49C;
+  --amber:     #C89A5A;
+  --sage:      #7A9E8E;
+  --rose:      #B07070;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --radius: 10px;
+  --tr: 0.18s ease;
+}
+html, body { background: var(--bg); color: var(--bone); font-family: var(--font-body); font-size: 15px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+header { padding: 20px 20px 0; }
+.wordmark { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.18em; color: var(--bone); display: flex; align-items: baseline; gap: 10px; }
+.wordmark span { color: var(--amber); }
+.date-tag { font-size: 11px; letter-spacing: 0.1em; color: var(--bone-dim); text-transform: uppercase; margin-left: 2px; }
+.values-line { font-size: 11px; letter-spacing: 0.14em; color: var(--bone-dim); text-transform: uppercase; padding: 6px 0 0 1px; }
+.values-line span { color: var(--amber); opacity: 0.6; margin: 0 6px; }
+
+/* NAV */
+nav { display: flex; gap: 2px; padding: 14px 20px 0; border-bottom: 1px solid var(--surface2); overflow-x: auto; scrollbar-width: none; }
+nav::-webkit-scrollbar { display: none; }
+.tab-btn { background: none; border: none; padding: 8px 12px; font-family: var(--font-body); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bone-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: color var(--tr), border-color var(--tr); white-space: nowrap; margin-bottom: -1px; }
+.tab-btn.active { color: var(--bone); border-bottom-color: var(--amber); }
+.tab-btn:hover { color: var(--bone); }
+
+/* MAIN */
+main { flex: 1; padding: 24px 20px 100px; max-width: 680px; margin: 0 auto; width: 100%; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* SHARED */
+.section-title { font-family: var(--font-display); font-size: 18px; font-weight: 400; color: var(--bone); margin-bottom: 6px; }
+.section-sub { font-size: 12px; color: var(--bone-dim); margin-bottom: 20px; line-height: 1.5; }
+.mantra { font-family: var(--font-display); font-style: italic; font-size: 13px; color: var(--bone-dim); line-height: 1.7; border-left: 2px solid var(--amber); padding: 10px 14px; margin-bottom: 24px; opacity: 0.85; }
+.mantra cite { display: block; font-family: var(--font-body); font-style: normal; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); opacity: 0.7; margin-top: 6px; }
+.card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+.card-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bone-dim); margin-bottom: 8px; }
+textarea, input[type=text], input[type=number] { width: 100%; background: var(--surface2); border: 1px solid transparent; border-radius: 8px; padding: 10px 12px; color: var(--bone); font-family: var(--font-body); font-size: 14px; line-height: 1.6; resize: vertical; transition: border-color var(--tr); outline: none; }
+textarea:focus, input:focus { border-color: var(--amber); }
+textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: italic; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--amber); color: var(--bg); border: none; border-radius: 8px; padding: 10px 18px; font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity var(--tr); }
+.btn:hover { opacity: 0.88; }
+.btn-ghost { background: none; color: var(--bone-dim); border: 1px solid var(--surface2); }
+.btn-ghost:hover { color: var(--bone); border-color: var(--bone-dim); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: var(--rose); color: #fff; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--surface2); border: 1px solid transparent; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--bone-dim); cursor: pointer; transition: all var(--tr); user-select: none; }
+.chip:hover { color: var(--bone); }
+.chip.sel-amber { background: none; border-color: var(--amber); color: var(--amber); }
+.chip.sel-sage  { background: none; border-color: var(--sage);  color: var(--sage);  }
+.chip.sel-rose  { background: none; border-color: var(--rose);  color: var(--rose);  }
+.divider { height: 1px; background: var(--surface2); margin: 24px 0; }
+.empty { text-align: center; padding: 40px 20px; color: var(--bone-dim); font-size: 13px; line-height: 1.6; }
+.empty-title { font-family: var(--font-display); font-size: 16px; color: var(--bone); margin-bottom: 8px; }
+
+/* MORNING — dots */
+.scale-wrap { display: flex; gap: 10px; }
+.dot-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dot { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--surface2); cursor: pointer; transition: all var(--tr); }
+.dot:hover { border-color: var(--bone-dim); }
+.dot.active-amber { background: var(--amber); border-color: var(--amber); }
+.dot.active-sage  { background: var(--sage);  border-color: var(--sage);  }
+.dot.active-rose  { background: var(--rose);  border-color: var(--rose);  }
+.dot-lbl { font-size: 9px; color: var(--bone-dim); }
+.avoidance-tag { background: var(--surface2); border: 1px dashed var(--surface2); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--bone-dim); cursor: pointer; transition: all var(--tr); }
+.avoidance-tag:hover, .avoidance-tag.sel { border-color: var(--rose); color: var(--rose); background: none; }
+
+/* LOG — activity cards */
+.activity-card { background: var(--surface); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border-left: 3px solid var(--surface2); transition: border-color var(--tr); }
+.activity-card.locus-mine     { border-left-color: var(--sage); }
+.activity-card.locus-mixed    { border-left-color: var(--amber); }
+.activity-card.locus-inherited{ border-left-color: var(--rose); }
+.activity-card.locus-unsure   { border-left-color: var(--bone-dim); }
+.act-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.act-title { font-size: 14px; color: var(--bone); line-height: 1.4; flex: 1; }
+.act-meta { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.act-time { font-size: 11px; color: var(--bone-dim); }
+.act-expand-btn { background: none; border: none; color: var(--bone-dim); font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: color var(--tr); }
+.act-expand-btn:hover { color: var(--amber); }
+.act-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.act-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.act-detail { display: none; margin-top: 14px; border-top: 1px solid var(--surface2); padding-top: 14px; }
+.act-detail.open { display: block; }
+.detail-section { margin-bottom: 14px; }
+.detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bone-dim); margin-bottom: 6px; }
+.range-wrap { display: flex; align-items: center; gap: 10px; }
+.range-wrap input[type=range] { flex: 1; accent-color: var(--amber); }
+.range-val { font-size: 13px; color: var(--amber); width: 24px; text-align: right; }
+.remove-btn { background: none; border: none; color: var(--bone-dim); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: color var(--tr); }
+.remove-btn:hover { color: var(--rose); }
+
+/* Quick-capture bar */
+.quick-capture { background: var(--surface); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; display: flex; gap: 8px; align-items: center; border: 1px dashed var(--surface2); }
+.quick-capture input { flex: 1; background: transparent; border: none; padding: 0; font-size: 14px; }
+.quick-capture input:focus { border: none; }
+
+/* BUCKET */
+.bucket-item { background: var(--surface); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; cursor: pointer; }
+.orienting-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bone-dim); margin-bottom: 6px; }
+.schema-toggle { background: none; border: none; color: var(--bone-dim); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0; margin-bottom: 10px; }
+.schema-toggle:hover { color: var(--bone); }
+.schema-fields { display: none; }
+.schema-fields.open { display: block; }
+
+/* EVENING */
+.evening-q { margin-bottom: 16px; }
+.evening-q-label { font-size: 13px; color: var(--bone); margin-bottom: 8px; line-height: 1.5; }
+
+/* INSIGHTS */
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.insight-card { background: var(--surface); border-radius: var(--radius); padding: 14px; }
+.insight-number { font-family: var(--font-display); font-size: 32px; color: var(--amber); line-height: 1; margin-bottom: 4px; }
+.insight-label { font-size: 11px; color: var(--bone-dim); line-height: 1.4; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label { font-size: 11px; color: var(--bone-dim); width: 120px; flex-shrink: 0; text-align: right; line-height: 1.3; }
+.bar-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; }
+.bar-val { font-size: 11px; color: var(--bone-dim); width: 24px; }
+.pattern-item { background: var(--surface); border-radius: var(--radius); padding: 14px; margin-bottom: 8px; display: flex; gap: 12px; }
+.pattern-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+.pattern-text { font-size: 13px; color: var(--bone-dim); line-height: 1.5; }
+.pattern-text strong { color: var(--bone); }
+
+/* MODAL */
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--surface); border-radius: 16px 16px 0 0; padding: 24px 20px 40px; width: 100%; max-width: 680px; max-height: 92vh; overflow-y: auto; }
+.modal-title { font-family: var(--font-display); font-size: 17px; margin-bottom: 20px; }
+.modal-section { margin-bottom: 18px; }
+.modal-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--bone-dim); margin-bottom: 8px; }
+
+/* BACKUP */
+.backup-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<header>
+  <div class="wordmark">F<span>·</span>E<span>·</span>L<span>·</span>T <span style="font-size:11px;letter-spacing:0.08em;color:var(--bone-dim);font-family:var(--font-body);margin-left:4px;" id="headerDate"></span></div>
+  <div class="values-line">Courage<span>·</span>Compassion<span>·</span>Connection</div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="morning">Morning</button>
+  <button class="tab-btn" data-tab="log">Log</button>
+  <button class="tab-btn" data-tab="evening">Evening</button>
+  <button class="tab-btn" data-tab="bucket">Bucket</button>
+  <button class="tab-btn" data-tab="insights">Insights</button>
+</nav>
+
+<main>
+
+<!-- ══════════ MORNING ══════════ -->
+<div class="tab-panel active" id="tab-morning">
+  <div class="section-title">What is present</div>
+  <p class="section-sub">Not a plan. A weather report.</p>
+
+  <div class="mantra">
+    No matter what gets done and how much is left undone, I am enough.
+    <cite>— Brené Brown</cite>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Energy</div>
+    <div class="scale-wrap" id="energy-dots">
+      <div class="dot-col"><div class="dot" data-val="1" data-color="rose"></div><div class="dot-lbl">low</div></div>
+      <div class="dot-col"><div class="dot" data-val="2" data-color="rose"></div><div class="dot-lbl"></div></div>
+      <div class="dot-col"><div class="dot" data-val="3" data-color="amber"></div><div class="dot-lbl">mid</div></div>
+      <div class="dot-col"><div class="dot" data-val="4" data-color="amber"></div><div class="dot-lbl"></div></div>
+      <div class="dot-col"><div class="dot" data-val="5" data-color="sage"></div><div class="dot-lbl">full</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Emotional weather</div>
+    <div class="chip-group" id="emotion-chips" style="margin-bottom:10px;">
+      <div class="chip" data-val="tender">tender</div>
+      <div class="chip" data-val="contracted">contracted</div>
+      <div class="chip" data-val="restless">restless</div>
+      <div class="chip" data-val="spacious">spacious</div>
+      <div class="chip" data-val="heavy">heavy</div>
+      <div class="chip" data-val="curious">curious</div>
+      <div class="chip" data-val="flat">flat</div>
+      <div class="chip" data-val="bright">bright</div>
+      <div class="chip" data-val="raw">raw</div>
+      <div class="chip" data-val="steady">steady</div>
+      <div class="chip" data-val="fragmented">fragmented</div>
+      <div class="chip" data-val="alive">alive</div>
+      <div class="chip" data-val="anxious">anxious</div>
+      <div class="chip" data-val="melancholic">melancholic</div>
+    </div>
+    <textarea rows="2" placeholder="or name it in your own words…" id="emotion-other"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-label">What is pulling at me</div>
+    <textarea rows="3" placeholder="Something unresolved, a conversation, a desire, a dread…" id="morning-pulling"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-label">What I am avoiding</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="avoiding-tags">
+      <div class="avoidance-tag" data-val="a conversation">a conversation</div>
+      <div class="avoidance-tag" data-val="a task">a task</div>
+      <div class="avoidance-tag" data-val="a feeling">a feeling</div>
+      <div class="avoidance-tag" data-val="stillness">stillness</div>
+      <div class="avoidance-tag" data-val="beginning">beginning</div>
+      <div class="avoidance-tag" data-val="my body">my body</div>
+      <div class="avoidance-tag" data-val="nothing obvious">nothing obvious</div>
+    </div>
+    <textarea rows="2" placeholder="or describe it…" id="morning-avoiding"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Body note</div>
+    <textarea rows="2" placeholder="Where do you feel yourself right now? Tension, openness, weight, lightness…" id="morning-body"></textarea>
+  </div>
+
+  <button class="btn" id="save-morning" style="width:100%;margin-top:4px;">Hold this</button>
+  <div id="morning-saved-msg" style="text-align:center;font-size:12px;color:var(--sage);margin-top:10px;display:none;">Held for today · you can return and update any time</div>
+
+  <div class="divider"></div>
+  <div style="font-family:var(--font-display);font-size:14px;margin-bottom:12px;">Recent mornings</div>
+  <div id="morning-history"></div>
+</div>
+
+<!-- ══════════ LOG ══════════ -->
+<div class="tab-panel" id="tab-log">
+  <div class="section-title">What is moving</div>
+  <p class="section-sub">Log each activity as it happens — or just after. Quick capture now, deepen later.</p>
+
+  <!-- Quick capture -->
+  <div class="quick-capture">
+    <input type="text" placeholder="What did you just do?" id="quick-title" autocomplete="off">
+    <button class="btn btn-sm" id="quick-add">+ Log</button>
+  </div>
+
+  <div id="activity-list"></div>
+</div>
+
+<!-- ══════════ EVENING ══════════ -->
+<div class="tab-panel" id="tab-evening">
+  <div class="section-title">Closing the day</div>
+  <p class="section-sub">Not a verdict. A witnessing.</p>
+
+  <div class="mantra">
+    Yes, I am imperfect and vulnerable and sometimes afraid, but that does not change the truth that I am also brave and worthy of love and belonging.
+    <cite>— Brené Brown</cite>
+  </div>
+
+  <div class="card">
+    <div class="evening-q">
+      <div class="evening-q-label">What did I do today primarily because I felt I should?</div>
+      <textarea rows="3" placeholder="Name them without judgment…" id="eve-should"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="evening-q">
+      <div class="evening-q-label">What did I do today because I genuinely wanted to, or genuinely valued it?</div>
+      <textarea rows="3" placeholder="What felt actually mine…" id="eve-wanted"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="evening-q">
+      <div class="evening-q-label">What need, desire, or impulse did I repeatedly ignore today?</div>
+      <textarea rows="3" placeholder="What kept asking and didn't get space…" id="eve-ignored"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="evening-q">
+      <div class="evening-q-label">Overall, where did today's actions come from?</div>
+      <div class="chip-group" id="eve-locus" style="margin-bottom:12px;">
+        <div class="chip" data-val="mostly from me">mostly from me</div>
+        <div class="chip" data-val="mixed">mixed</div>
+        <div class="chip" data-val="largely from obligation">largely from obligation</div>
+        <div class="chip" data-val="unclear">unclear</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="evening-q">
+      <div class="evening-q-label">Where do you feel today in your body right now?</div>
+      <textarea rows="3" placeholder="Land it in the body before sleep. Weight, tightness, ease, where things are sitting…" id="eve-body"></textarea>
+    </div>
+  </div>
+
+  <button class="btn" id="save-evening" style="width:100%;margin-top:4px;">Close the day</button>
+  <div id="evening-saved-msg" style="text-align:center;font-size:12px;color:var(--sage);margin-top:10px;display:none;">Closed.</div>
+
+  <div class="divider"></div>
+  <div style="font-family:var(--font-display);font-size:14px;margin-bottom:12px;">Past evenings</div>
+  <div id="evening-history"></div>
+</div>
+
+<!-- ══════════ BUCKET ══════════ -->
+<div class="tab-panel" id="tab-bucket">
+  <div class="section-title">What is circling</div>
+  <p class="section-sub">Drop it in so your nervous system can let go. The three questions slow the distance between impulse and action.</p>
+
+  <div id="bucket-add-area">
+    <div id="bucket-collapsed">
+      <button class="btn btn-ghost" style="width:100%;margin-bottom:14px;" id="open-bucket-form">+ Drop something in</button>
+    </div>
+    <div id="bucket-expanded" style="display:none;">
+      <div class="card" style="border:1px dashed var(--surface2);">
+        <input type="text" placeholder="What is this?" id="bucket-title" style="margin-bottom:14px;">
+
+        <div style="margin-bottom:12px;">
+          <div class="orienting-label">Where does this come from?</div>
+          <div class="chip-group" id="bucket-source">
+            <div class="chip" data-val="Genuine desire">genuine desire</div>
+            <div class="chip" data-val="Felt need">felt need</div>
+            <div class="chip" data-val="Sense of obligation">sense of obligation</div>
+            <div class="chip" data-val="External expectation">external expectation</div>
+            <div class="chip" data-val="Unclear">unclear</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <div class="orienting-label">How does it land in my body when I imagine doing it?</div>
+          <div class="chip-group" id="bucket-body">
+            <div class="chip" data-val="Expansive">expansive</div>
+            <div class="chip" data-val="Neutral">neutral</div>
+            <div class="chip" data-val="Contracted">contracted</div>
+            <div class="chip" data-val="Mixed">mixed</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div class="orienting-label">What would happen if I never did this?</div>
+          <div class="chip-group" id="bucket-loss">
+            <div class="chip" data-val="Something real would be lost">something real would be lost</div>
+            <div class="chip" data-val="I'd feel relieved">I'd feel relieved</div>
+            <div class="chip" data-val="I genuinely don't know">I genuinely don't know</div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--surface2);padding-top:14px;">
+          <button class="schema-toggle" id="toggle-schema"><span id="schema-arrow">▸</span> Tending schema (optional)</button>
+          <div class="schema-fields" id="schema-fields">
+            <div style="margin-bottom:10px;">
+              <div class="orienting-label">Domain</div>
+              <div class="chip-group" id="bucket-domain">
+                <div class="chip" data-val="physical">physical</div>
+                <div class="chip" data-val="practical">practical</div>
+                <div class="chip" data-val="relational">relational</div>
+                <div class="chip" data-val="emotional">emotional</div>
+                <div class="chip" data-val="intellectual">intellectual</div>
+                <div class="chip" data-val="spiritual">spiritual</div>
+              </div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div class="orienting-label">Mode</div>
+              <div class="chip-group" id="bucket-mode">
+                <div class="chip" data-val="Receptive">receptive</div>
+                <div class="chip" data-val="Expressive">expressive</div>
+              </div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div class="orienting-label">Temporal</div>
+              <div class="chip-group" id="bucket-temporal">
+                <div class="chip" data-val="Past">past</div>
+                <div class="chip" data-val="Present">present</div>
+                <div class="chip" data-val="Future">future</div>
+              </div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div class="orienting-label">Polarity</div>
+              <div class="chip-group" id="bucket-polarity">
+                <div class="chip" data-val="Aliveness">aliveness</div>
+                <div class="chip" data-val="Maintenance">maintenance</div>
+              </div>
+            </div>
+            <div style="margin-bottom:4px;">
+              <div class="orienting-label">Needs</div>
+              <div class="chip-group" id="bucket-needs">
+                <div class="chip" data-val="Joy, Pleasure, Delight">joy</div>
+                <div class="chip" data-val="Rest & Recovery">rest</div>
+                <div class="chip" data-val="Connection">connection</div>
+                <div class="chip" data-val="Expression">expression</div>
+                <div class="chip" data-val="Growth">growth</div>
+                <div class="chip" data-val="Meaning-Making">meaning-making</div>
+                <div class="chip" data-val="Transcendence">transcendence</div>
+                <div class="chip" data-val="Body & Sensory Aliveness">body aliveness</div>
+                <div class="chip" data-val="Intellectual Nourishment">intellectual nourishment</div>
+                <div class="chip" data-val="Emotional Nourishment">emotional nourishment</div>
+                <div class="chip" data-val="Being Known">being known</div>
+                <div class="chip" data-val="Belonging">belonging</div>
+                <div class="chip" data-val="Freedom, Autonomy & Self-Realisation">autonomy</div>
+                <div class="chip" data-val="Care, Tending & Nurturing towards Self and Relationships">tending</div>
+                <div class="chip" data-val="Stability & Consistency">stability</div>
+                <div class="chip" data-val="Security">security</div>
+                <div class="chip" data-val="Safety">safety</div>
+                <div class="chip" data-val="Satiety">satiety</div>
+                <div class="chip" data-val="Play">play</div>
+                <div class="chip" data-val="Solitude">solitude</div>
+                <div class="chip" data-val="Impact & Contribution">impact</div>
+                <div class="chip" data-val="Planning">planning</div>
+                <div class="chip" data-val="Management, Strategy & Fructification">strategy</div>
+                <div class="chip" data-val="Resources, Knowledge & Skills Building">skills building</div>
+                <div class="chip" data-val="Comfort, Home-Making & Ease">comfort</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn" id="save-bucket-item" style="flex:1;">Hold</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-bucket-form">cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bucket-list"></div>
+</div>
+
+<!-- ══════════ INSIGHTS ══════════ -->
+<div class="tab-panel" id="tab-insights">
+  <div class="section-title">Patterns over time</div>
+  <p class="section-sub">Not to evaluate — to witness the drift.</p>
+
+  <div class="backup-bar">
+    <button class="btn btn-ghost btn-sm" id="backup-export">↓ Back up data</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer;">↑ Restore <input type="file" id="backup-import" accept=".json" style="display:none;"></label>
+  </div>
+
+  <div class="insight-grid" id="insight-summary"></div>
+  <div class="card" style="margin-bottom:10px;"><div class="card-label" style="margin-bottom:12px;">Source of bucket items</div><div id="source-bars"></div></div>
+  <div class="card" style="margin-bottom:10px;"><div class="card-label" style="margin-bottom:12px;">Unmet needs (evening logs)</div><div id="unmet-bars"></div></div>
+  <div class="card" style="margin-bottom:10px;"><div class="card-label" style="margin-bottom:12px;">Post-activity felt sense</div><div id="after-bars"></div></div>
+  <div class="card" style="margin-bottom:10px;"><div class="card-label" style="margin-bottom:12px;">Motivation patterns (activity log)</div><div id="motivation-bars"></div></div>
+
+  <div style="font-family:var(--font-display);font-size:14px;margin:24px 0 12px;">What the data notices</div>
+  <div id="narrative-patterns"></div>
+</div>
+
+</main>
+</div>
+
+<!-- ══════════ ACTIVITY DETAIL MODAL ══════════ -->
+<div class="modal-backdrop" id="activity-modal">
+  <div class="modal">
+    <div class="modal-title" id="amodal-title">Expand this activity</div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Duration (minutes)</div>
+      <input type="number" id="amodal-duration" min="1" max="480" placeholder="e.g. 30">
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Before — what were you feeling pulled toward?</div>
+      <div class="chip-group" id="amodal-pulled">
+        <div class="chip" data-val="Rest">rest</div>
+        <div class="chip" data-val="Food">food</div>
+        <div class="chip" data-val="Connection">connection</div>
+        <div class="chip" data-val="Curiosity">curiosity</div>
+        <div class="chip" data-val="Creativity">creativity</div>
+        <div class="chip" data-val="Achievement">achievement</div>
+        <div class="chip" data-val="Order">order</div>
+        <div class="chip" data-val="Movement">movement</div>
+        <div class="chip" data-val="Nothing obvious">nothing obvious</div>
+      </div>
+      <input type="text" placeholder="other…" id="amodal-pulled-other" style="margin-top:8px;">
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Strength of felt desire or need (0–10)</div>
+      <div class="range-wrap">
+        <input type="range" min="0" max="10" value="5" id="amodal-desire-range">
+        <div class="range-val" id="amodal-desire-val">5</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Motivation — why did I do this?</div>
+      <div class="chip-group" id="amodal-motivation">
+        <div class="chip" data-val="Direct response to a felt need">felt need</div>
+        <div class="chip" data-val="Chosen because it aligns with my values">aligns with values</div>
+        <div class="chip" data-val="Felt like an obligation / should">obligation / should</div>
+        <div class="chip" data-val="Avoiding discomfort, guilt, anxiety, conflict">avoiding discomfort</div>
+        <div class="chip" data-val="Habit / autopilot">habit / autopilot</div>
+        <div class="chip" data-val="Mixed or unclear">mixed / unclear</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">How much choice did I feel I had? (0 = none, 10 = fully voluntary)</div>
+      <div class="range-wrap">
+        <input type="range" min="0" max="10" value="5" id="amodal-choice-range">
+        <div class="range-val" id="amodal-choice-val">5</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">What thoughts were present? (optional)</div>
+      <textarea rows="2" placeholder="I should be productive. I deserve a break. This actually matters to me…" id="amodal-thoughts"></textarea>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Did I notice a need that was not acted upon?</div>
+      <div class="chip-group" id="amodal-unmet-toggle" style="margin-bottom:8px;">
+        <div class="chip" data-val="No">no</div>
+        <div class="chip" data-val="Yes">yes</div>
+      </div>
+      <div id="amodal-unmet-needs-wrap" style="display:none;">
+        <div class="chip-group" id="amodal-unmet-needs">
+          <div class="chip" data-val="Rest & Recovery">rest</div>
+          <div class="chip" data-val="Solitude">solitude</div>
+          <div class="chip" data-val="Connection">connection</div>
+          <div class="chip" data-val="Body & Sensory Aliveness">body aliveness</div>
+          <div class="chip" data-val="Joy, Pleasure, Delight">joy</div>
+          <div class="chip" data-val="Expression">expression</div>
+          <div class="chip" data-val="Meaning-Making">meaning</div>
+          <div class="chip" data-val="Intellectual Nourishment">intellectual nourishment</div>
+          <div class="chip" data-val="Emotional Nourishment">emotional nourishment</div>
+          <div class="chip" data-val="Freedom, Autonomy & Self-Realisation">autonomy</div>
+          <div class="chip" data-val="Belonging">belonging</div>
+          <div class="chip" data-val="Play">play</div>
+          <div class="chip" data-val="Safety">safety</div>
+          <div class="chip" data-val="Satiety">satiety</div>
+          <div class="chip" data-val="Being Known">being known</div>
+          <div class="chip" data-val="Transcendence">transcendence</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">After — I felt:</div>
+      <div class="chip-group" id="amodal-after">
+        <div class="chip" data-val="More alive">more alive</div>
+        <div class="chip" data-val="Relieved">relieved</div>
+        <div class="chip" data-val="Neutral">neutral</div>
+        <div class="chip" data-val="Drained">drained</div>
+        <div class="chip" data-val="Resentful">resentful</div>
+        <div class="chip" data-val="Proud">proud</div>
+        <div class="chip" data-val="Connected to myself">connected to myself</div>
+        <div class="chip" data-val="Disconnected from myself">disconnected from myself</div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Looking back, does this activity feel:</div>
+      <div class="chip-group" id="amodal-locus" style="margin-bottom:10px;">
+        <div class="chip" data-val="Mostly mine">mostly mine</div>
+        <div class="chip" data-val="Mixed">mixed</div>
+        <div class="chip" data-val="Mostly inherited from others">mostly inherited</div>
+        <div class="chip" data-val="Unsure">unsure</div>
+      </div>
+      <div class="orienting-label" style="margin-top:12px;margin-bottom:8px;">If nobody expected anything from me, would I still choose this?</div>
+      <div class="chip-group" id="amodal-would-choose">
+        <div class="chip" data-val="Yes">yes</div>
+        <div class="chip" data-val="No">no</div>
+        <div class="chip" data-val="Partly">partly</div>
+        <div class="chip" data-val="Unsure">unsure</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-ghost" id="amodal-close" style="flex:1;">Close</button>
+      <button class="btn" id="amodal-save" style="flex:1;">Save</button>
+    </div>
+    <div style="margin-top:10px;text-align:center;">
+      <button class="btn btn-danger btn-sm" id="amodal-delete">Delete this activity</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ BUCKET MODAL ══════════ -->
+<div class="modal-backdrop" id="bucket-modal">
+  <div class="modal">
+    <div class="modal-title" id="bmodal-title"></div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">Where does this come from?</div>
+      <div class="chip-group" id="bmodal-source"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">Body response when imagined</div>
+      <div class="chip-group" id="bmodal-body"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-label">If I never did this</div>
+      <div class="chip-group" id="bmodal-loss"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-ghost" id="bmodal-close" style="flex:1;">Close</button>
+      <button class="btn" id="bmodal-done" style="flex:1;">Mark tended</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const KEYS = { mornings:'felt_mornings', evenings:'felt_evenings', activities:'felt_activities', bucket:'felt_bucket' };
+function load(k,d){ try{return JSON.parse(localStorage.getItem(k))||d;}catch{return d;} }
+function save(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+
+let mornings   = load(KEYS.mornings,[]);
+let evenings   = load(KEYS.evenings,[]);
+let activities = load(KEYS.activities,[]);
+let bucket     = load(KEYS.bucket,[]);
+
+// ══════════════════════════════════════════
+// DATE
+// ══════════════════════════════════════════
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function formatDate(s){
+  if(!s)return'';
+  const d=new Date(s+'T12:00:00');
+  return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+}
+function formatShort(s){
+  if(!s)return'';
+  try{
+    const d=new Date(s.includes('T')?s:s+'T12:00:00');
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  }catch{return s;}
+}
+function timeNow(){
+  const n=new Date();
+  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+
+document.getElementById('headerDate').textContent =
+  new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long'});
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    const t=btn.dataset.tab;
+    if(t==='morning') renderMorningHistory();
+    if(t==='log')     renderActivities();
+    if(t==='evening') renderEveningHistory();
+    if(t==='bucket')  renderBucket();
+    if(t==='insights')renderInsights();
+  });
+});
+
+// ══════════════════════════════════════════
+// CHIP HELPERS
+// ══════════════════════════════════════════
+function initChips(el,multi=true,cls='sel-amber'){
+  if(!el)return;
+  el.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(!multi) el.querySelectorAll('.chip').forEach(x=>x.className='chip');
+      c.classList.toggle(cls);
+    });
+  });
+}
+function getChips(el){ return el?[...el.querySelectorAll('.chip.sel-amber,.chip.sel-sage,.chip.sel-rose')].map(c=>c.dataset.val):[]; }
+function setChips(el,vals,cls='sel-amber'){
+  if(!el)return;
+  el.querySelectorAll('.chip').forEach(c=>{
+    c.className='chip';
+    if(vals&&vals.includes(c.dataset.val)) c.classList.add(cls);
+  });
+}
+function clearChips(el){ if(el) el.querySelectorAll('.chip').forEach(c=>c.className='chip'); }
+
+// init static chips
+initChips(document.getElementById('emotion-chips'),true,'sel-amber');
+document.getElementById('avoiding-tags').querySelectorAll('.avoidance-tag').forEach(t=>{
+  t.addEventListener('click',()=>t.classList.toggle('sel'));
+});
+initChips(document.getElementById('eve-locus'),false,'sel-amber');
+initChips(document.getElementById('bucket-source'),false,'sel-sage');
+initChips(document.getElementById('bucket-body'),false,'sel-amber');
+initChips(document.getElementById('bucket-loss'),false,'sel-rose');
+initChips(document.getElementById('bucket-domain'),false,'sel-amber');
+initChips(document.getElementById('bucket-mode'),false,'sel-amber');
+initChips(document.getElementById('bucket-temporal'),false,'sel-amber');
+initChips(document.getElementById('bucket-polarity'),false,'sel-amber');
+initChips(document.getElementById('bucket-needs'),true,'sel-amber');
+
+// ══════════════════════════════════════════
+// ENERGY DOTS
+// ══════════════════════════════════════════
+let selEnergy=null;
+document.getElementById('energy-dots').querySelectorAll('.dot').forEach(dot=>{
+  dot.addEventListener('click',()=>{
+    selEnergy=parseInt(dot.dataset.val);
+    document.querySelectorAll('#energy-dots .dot').forEach(d=>{
+      d.className='dot';
+      if(parseInt(d.dataset.val)<=selEnergy){
+        const col=selEnergy<=2?'rose':selEnergy===3?'amber':'sage';
+        d.classList.add('active-'+col);
+      }
+    });
+  });
+});
+
+// ══════════════════════════════════════════
+// MORNING
+// ══════════════════════════════════════════
+document.getElementById('save-morning').addEventListener('click',()=>{
+  const avoidTags=[...document.querySelectorAll('#avoiding-tags .avoidance-tag.sel')].map(t=>t.dataset.val);
+  const entry={
+    date:todayStr(),
+    energy:selEnergy,
+    emotions:getChips(document.getElementById('emotion-chips')),
+    emotionOther:document.getElementById('emotion-other').value.trim(),
+    pulling:document.getElementById('morning-pulling').value.trim(),
+    avoiding:avoidTags.concat(document.getElementById('morning-avoiding').value.trim()).filter(Boolean),
+    body:document.getElementById('morning-body').value.trim()
+  };
+  const idx=mornings.findIndex(m=>m.date===entry.date);
+  if(idx>-1)mornings[idx]=entry;else mornings.unshift(entry);
+  save(KEYS.mornings,mornings);
+  document.getElementById('morning-saved-msg').style.display='block';
+  renderMorningHistory();
+});
+
+function renderMorningHistory(){
+  const el=document.getElementById('morning-history');
+  if(!mornings.length){el.innerHTML='<div class="empty"><div class="empty-title">Nothing held yet</div></div>';return;}
+  el.innerHTML=mornings.slice(0,7).map(m=>`
+    <div style="border-left:2px solid var(--surface2);padding-left:16px;margin-bottom:24px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;">${formatDate(m.date)}</div>
+      ${m.energy?`<div style="font-size:12px;color:var(--bone-dim);margin-bottom:4px;">Energy <span style="color:var(--amber)">${m.energy}/5</span></div>`:''}
+      ${m.emotions?.length?`<div style="margin-bottom:4px;">${m.emotions.map(e=>`<span style="font-size:12px;color:var(--sage);margin-right:6px;">${e}</span>`).join('')}</div>`:''}
+      ${m.emotionOther?`<div style="font-size:12px;color:var(--sage);margin-bottom:4px;font-style:italic;">${m.emotionOther}</div>`:''}
+      ${m.pulling?`<div style="font-size:13px;color:var(--bone-dim);margin-bottom:4px;font-style:italic;">${m.pulling}</div>`:''}
+      ${m.body?`<div style="font-size:12px;color:var(--bone-dim);">Body: ${m.body}</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+// ACTIVITY LOG
+// ══════════════════════════════════════════
+document.getElementById('quick-add').addEventListener('click',addActivity);
+document.getElementById('quick-title').addEventListener('keydown',e=>{if(e.key==='Enter')addActivity();});
+
+function addActivity(){
+  const title=document.getElementById('quick-title').value.trim();
+  if(!title)return;
+  const act={
+    id:Date.now(),
+    date:todayStr(),
+    time:timeNow(),
+    title,
+    duration:null,
+    pulled:[],pulledOther:'',
+    desireStrength:5,
+    motivation:[],
+    choiceLevel:5,
+    thoughts:'',
+    unmetNeeds:[],
+    afterFelt:[],
+    locus:null,
+    wouldChoose:null
+  };
+  activities.unshift(act);
+  save(KEYS.activities,activities);
+  document.getElementById('quick-title').value='';
+  renderActivities();
+}
+
+const LOCUS_CLASS={
+  'Mostly mine':'locus-mine',
+  'Mixed':'locus-mixed',
+  'Mostly inherited from others':'locus-inherited',
+  'Unsure':'locus-unsure'
+};
+const AFTER_COLOR={
+  'More alive':'var(--sage)',
+  'Connected to myself':'var(--sage)',
+  'Proud':'var(--sage)',
+  'Relieved':'var(--amber)',
+  'Neutral':'var(--bone-dim)',
+  'Drained':'var(--rose)',
+  'Resentful':'var(--rose)',
+  'Disconnected from myself':'var(--rose)'
+};
+
+function renderActivities(){
+  const el=document.getElementById('activity-list');
+  const todayActs=activities.filter(a=>a.date===todayStr());
+  const olderActs=activities.filter(a=>a.date!==todayStr());
+
+  if(!activities.length){
+    el.innerHTML='<div class="empty"><div class="empty-title">Nothing logged yet</div>Use the field above to capture activities as they happen.</div>';
+    return;
+  }
+
+  function actHTML(a){
+    const lc=a.locus?LOCUS_CLASS[a.locus]||'':'';
+    const afterTags=a.afterFelt?.map(f=>`<span class="act-tag" style="color:${AFTER_COLOR[f]||'var(--bone-dim)'};border:1px solid ${AFTER_COLOR[f]||'var(--bone-dim)'};border-radius:10px;">${f}</span>`).join('')||'';
+    const motTags=a.motivation?.map(m=>`<span class="act-tag" style="color:var(--bone-dim);font-size:10px;">${m}</span>`).join('')||'';
+    return `
+      <div class="activity-card ${lc}" data-id="${a.id}">
+        <div class="act-header">
+          <div class="act-title">${a.title}</div>
+          <div class="act-meta">
+            <span class="act-time">${a.time||''}</span>
+            ${a.duration?`<span class="act-time">${a.duration}m</span>`:''}
+            <button class="act-expand-btn" data-id="${a.id}">expand</button>
+          </div>
+        </div>
+        <div class="act-tags">${afterTags}${motTags}</div>
+      </div>
+    `;
+  }
+
+  let html='';
+  if(todayActs.length){
+    html+=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;">Today</div>`;
+    html+=todayActs.map(actHTML).join('');
+  }
+  if(olderActs.length){
+    const days=[...new Set(olderActs.map(a=>a.date))].sort((a,b)=>b.localeCompare(a)).slice(0,14);
+    days.forEach(d=>{
+      html+=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--bone-dim);margin:16px 0 8px;">${formatDate(d)}</div>`;
+      html+=olderActs.filter(a=>a.date===d).map(actHTML).join('');
+    });
+  }
+  el.innerHTML=html;
+
+  el.querySelectorAll('.act-expand-btn').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{e.stopPropagation();openActivityModal(btn.dataset.id);});
+  });
+  el.querySelectorAll('.activity-card').forEach(card=>{
+    card.addEventListener('click',()=>openActivityModal(card.dataset.id));
+  });
+}
+
+// ── ACTIVITY MODAL ──
+let activeActId=null;
+
+function openActivityModal(id){
+  const act=activities.find(a=>a.id==id);
+  if(!act)return;
+  activeActId=act.id;
+
+  document.getElementById('amodal-title').textContent=act.title;
+  document.getElementById('amodal-duration').value=act.duration||'';
+
+  // pulled
+  clearChips(document.getElementById('amodal-pulled'));
+  setChips(document.getElementById('amodal-pulled'),act.pulled||[]);
+  initChips(document.getElementById('amodal-pulled'),true,'sel-amber');
+  document.getElementById('amodal-pulled-other').value=act.pulledOther||'';
+
+  // desire
+  const dr=document.getElementById('amodal-desire-range');
+  dr.value=act.desireStrength??5;
+  document.getElementById('amodal-desire-val').textContent=dr.value;
+  dr.oninput=()=>document.getElementById('amodal-desire-val').textContent=dr.value;
+
+  // motivation
+  clearChips(document.getElementById('amodal-motivation'));
+  setChips(document.getElementById('amodal-motivation'),act.motivation||[]);
+  initChips(document.getElementById('amodal-motivation'),true,'sel-amber');
+
+  // choice
+  const cr=document.getElementById('amodal-choice-range');
+  cr.value=act.choiceLevel??5;
+  document.getElementById('amodal-choice-val').textContent=cr.value;
+  cr.oninput=()=>document.getElementById('amodal-choice-val').textContent=cr.value;
+
+  document.getElementById('amodal-thoughts').value=act.thoughts||'';
+
+  // unmet toggle
+  const hasUnmet=act.unmetNeeds&&act.unmetNeeds.length>0;
+  clearChips(document.getElementById('amodal-unmet-toggle'));
+  setChips(document.getElementById('amodal-unmet-toggle'),[hasUnmet?'Yes':'No']);
+  initChips(document.getElementById('amodal-unmet-toggle'),false,'sel-amber');
+  document.getElementById('amodal-unmet-needs-wrap').style.display=hasUnmet?'block':'none';
+  clearChips(document.getElementById('amodal-unmet-needs'));
+  setChips(document.getElementById('amodal-unmet-needs'),act.unmetNeeds||[]);
+  initChips(document.getElementById('amodal-unmet-needs'),true,'sel-rose');
+
+  // after
+  clearChips(document.getElementById('amodal-after'));
+  setChips(document.getElementById('amodal-after'),act.afterFelt||[]);
+  initChips(document.getElementById('amodal-after'),true,'sel-amber');
+
+  // locus
+  clearChips(document.getElementById('amodal-locus'));
+  setChips(document.getElementById('amodal-locus'),[act.locus||'']);
+  initChips(document.getElementById('amodal-locus'),false,'sel-sage');
+
+  // would choose
+  clearChips(document.getElementById('amodal-would-choose'));
+  setChips(document.getElementById('amodal-would-choose'),[act.wouldChoose||'']);
+  initChips(document.getElementById('amodal-would-choose'),false,'sel-amber');
+
+  // unmet toggle show/hide
+  document.getElementById('amodal-unmet-toggle').querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      setTimeout(()=>{
+        const sel=getChips(document.getElementById('amodal-unmet-toggle'));
+        document.getElementById('amodal-unmet-needs-wrap').style.display=sel.includes('Yes')?'block':'none';
+      },50);
+    });
+  });
+
+  document.getElementById('activity-modal').classList.add('open');
+}
+
+function saveActivityModal(){
+  const act=activities.find(a=>a.id==activeActId);
+  if(!act)return;
+  const dur=parseInt(document.getElementById('amodal-duration').value);
+  act.duration=isNaN(dur)?null:dur;
+  act.pulled=getChips(document.getElementById('amodal-pulled'));
+  act.pulledOther=document.getElementById('amodal-pulled-other').value.trim();
+  act.desireStrength=parseInt(document.getElementById('amodal-desire-range').value);
+  act.motivation=getChips(document.getElementById('amodal-motivation'));
+  act.choiceLevel=parseInt(document.getElementById('amodal-choice-range').value);
+  act.thoughts=document.getElementById('amodal-thoughts').value.trim();
+  const unmetSel=getChips(document.getElementById('amodal-unmet-toggle'));
+  act.unmetNeeds=unmetSel.includes('Yes')?getChips(document.getElementById('amodal-unmet-needs')):[];
+  act.afterFelt=getChips(document.getElementById('amodal-after'));
+  act.locus=getChips(document.getElementById('amodal-locus'))[0]||null;
+  act.wouldChoose=getChips(document.getElementById('amodal-would-choose'))[0]||null;
+  save(KEYS.activities,activities);
+  renderActivities();
+}
+
+document.getElementById('amodal-save').addEventListener('click',()=>{
+  saveActivityModal();
+  document.getElementById('activity-modal').classList.remove('open');
+  activeActId=null;
+});
+document.getElementById('amodal-close').addEventListener('click',()=>{
+  saveActivityModal();
+  document.getElementById('activity-modal').classList.remove('open');
+  activeActId=null;
+});
+document.getElementById('amodal-delete').addEventListener('click',()=>{
+  if(activeActId===null)return;
+  activities=activities.filter(a=>a.id!=activeActId);
+  save(KEYS.activities,activities);
+  document.getElementById('activity-modal').classList.remove('open');
+  activeActId=null;
+  renderActivities();
+});
+document.getElementById('activity-modal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('activity-modal'))document.getElementById('amodal-close').click();
+});
+
+// ══════════════════════════════════════════
+// EVENING
+// ══════════════════════════════════════════
+document.getElementById('save-evening').addEventListener('click',()=>{
+  const entry={
+    date:todayStr(),
+    should:document.getElementById('eve-should').value.trim(),
+    wanted:document.getElementById('eve-wanted').value.trim(),
+    ignored:document.getElementById('eve-ignored').value.trim(),
+    locus:getChips(document.getElementById('eve-locus'))[0]||null,
+    body:document.getElementById('eve-body').value.trim()
+  };
+  const idx=evenings.findIndex(e=>e.date===entry.date);
+  if(idx>-1)evenings[idx]=entry;else evenings.unshift(entry);
+  save(KEYS.evenings,evenings);
+  document.getElementById('evening-saved-msg').style.display='block';
+  renderEveningHistory();
+});
+
+function renderEveningHistory(){
+  const el=document.getElementById('evening-history');
+  if(!evenings.length){el.innerHTML='<div class="empty"><div class="empty-title">No evenings closed yet</div></div>';return;}
+  el.innerHTML=evenings.slice(0,7).map(e=>`
+    <div style="border-left:2px solid var(--surface2);padding-left:16px;margin-bottom:24px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;">${formatDate(e.date)}</div>
+      ${e.locus?`<div style="font-size:11px;color:var(--sage);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Source: ${e.locus}</div>`:''}
+      ${e.wanted?`<div style="font-size:13px;color:var(--bone-dim);margin-bottom:6px;font-style:italic;">"${e.wanted}"</div>`:''}
+      ${e.ignored?`<div style="font-size:12px;color:var(--rose);margin-bottom:4px;">Ignored: ${e.ignored}</div>`:''}
+      ${e.body?`<div style="font-size:12px;color:var(--bone-dim);">Body: ${e.body}</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+// BUCKET
+// ══════════════════════════════════════════
+document.getElementById('open-bucket-form').addEventListener('click',()=>{
+  document.getElementById('bucket-collapsed').style.display='none';
+  document.getElementById('bucket-expanded').style.display='block';
+});
+document.getElementById('cancel-bucket-form').addEventListener('click',()=>{
+  document.getElementById('bucket-collapsed').style.display='block';
+  document.getElementById('bucket-expanded').style.display='none';
+  resetBucketForm();
+});
+document.getElementById('toggle-schema').addEventListener('click',()=>{
+  const f=document.getElementById('schema-fields');
+  const a=document.getElementById('schema-arrow');
+  f.classList.toggle('open');
+  a.textContent=f.classList.contains('open')?'▾':'▸';
+});
+
+function resetBucketForm(){
+  document.getElementById('bucket-title').value='';
+  ['bucket-source','bucket-body','bucket-loss','bucket-domain','bucket-mode','bucket-temporal','bucket-polarity','bucket-needs'].forEach(id=>clearChips(document.getElementById(id)));
+  document.getElementById('schema-fields').classList.remove('open');
+  document.getElementById('schema-arrow').textContent='▸';
+}
+
+document.getElementById('save-bucket-item').addEventListener('click',()=>{
+  const title=document.getElementById('bucket-title').value.trim();
+  if(!title)return;
+  const item={
+    id:Date.now(),
+    title,
+    createdAt:new Date().toISOString(),
+    source:getChips(document.getElementById('bucket-source'))[0]||null,
+    bodyResponse:getChips(document.getElementById('bucket-body'))[0]||null,
+    ifNever:getChips(document.getElementById('bucket-loss'))[0]||null,
+    domain:getChips(document.getElementById('bucket-domain'))[0]||null,
+    mode:getChips(document.getElementById('bucket-mode'))[0]||null,
+    temporal:getChips(document.getElementById('bucket-temporal'))[0]||null,
+    polarity:getChips(document.getElementById('bucket-polarity'))[0]||null,
+    needs:getChips(document.getElementById('bucket-needs')),
+    tended:false
+  };
+  bucket.unshift(item);
+  save(KEYS.bucket,bucket);
+  document.getElementById('bucket-collapsed').style.display='block';
+  document.getElementById('bucket-expanded').style.display='none';
+  resetBucketForm();
+  renderBucket();
+});
+
+function renderBucket(){
+  const el=document.getElementById('bucket-list');
+  if(!bucket.length){el.innerHTML='<div class="empty"><div class="empty-title">Nothing circling</div></div>';return;}
+  const active=bucket.filter(b=>!b.tended);
+  const done=bucket.filter(b=>b.tended);
+  const SC={'Genuine desire':'var(--sage)','Felt need':'var(--sage)','Sense of obligation':'var(--rose)','External expectation':'var(--rose)','Unclear':'var(--bone-dim)'};
+  const BC={'Expansive':'var(--sage)','Contracted':'var(--rose)','Neutral':'var(--bone-dim)','Mixed':'var(--amber)'};
+
+  function bHTML(item){
+    const sc=item.source?SC[item.source]||'var(--bone-dim)':null;
+    const bc=item.bodyResponse?BC[item.bodyResponse]||'var(--bone-dim)':null;
+    return `<div class="bucket-item" data-id="${item.id}" style="opacity:${item.tended?.5:1};">
+      <div style="font-size:14px;color:var(--bone);margin-bottom:8px;${item.tended?'text-decoration:line-through;':''}">${item.title}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        ${item.source?`<span style="font-size:11px;color:${sc};border:1px solid ${sc};border-radius:10px;padding:2px 8px;">${item.source}</span>`:''}
+        ${item.bodyResponse?`<span style="font-size:11px;color:${bc};border:1px solid ${bc};border-radius:10px;padding:2px 8px;">${item.bodyResponse}</span>`:''}
+        ${item.ifNever?`<span style="font-size:11px;color:var(--bone-dim);">${item.ifNever}</span>`:''}
+        ${item.domain?`<span style="font-size:10px;color:var(--bone-dim);background:var(--surface2);border-radius:6px;padding:2px 8px;">${item.domain}</span>`:''}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <span style="font-size:10px;color:var(--bone-dim);">${formatShort(item.createdAt?.slice(0,10)||'')}</span>
+        <button class="remove-btn del-bucket" data-id="${item.id}" style="font-size:12px;">remove</button>
+      </div>
+    </div>`;
+  }
+
+  let html=active.map(bHTML).join('');
+  if(done.length){
+    html+=`<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--bone-dim);margin:16px 0 8px;">Tended (${done.length})</div>`;
+    html+=done.map(bHTML).join('');
+  }
+  el.innerHTML=html;
+
+  el.querySelectorAll('.bucket-item').forEach(c=>{
+    c.addEventListener('click',(e)=>{if(e.target.classList.contains('del-bucket'))return;openBucketModal(c.dataset.id);});
+  });
+  el.querySelectorAll('.del-bucket').forEach(b=>{
+    b.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      bucket=bucket.filter(x=>x.id!=b.dataset.id);
+      save(KEYS.bucket,bucket);renderBucket();
+    });
+  });
+}
+
+// bucket modal
+let activeBId=null;
+function openBucketModal(id){
+  const item=bucket.find(b=>b.id==id);
+  if(!item)return;
+  activeBId=id;
+  document.getElementById('bmodal-title').textContent=item.title;
+  const srcOpts=['Genuine desire','Felt need','Sense of obligation','External expectation','Unclear'];
+  const bodyOpts=['Expansive','Neutral','Contracted','Mixed'];
+  const lossOpts=["Something real would be lost","I'd feel relieved","I genuinely don't know"];
+  function mk(container,opts,sel,cls){
+    container.innerHTML=opts.map(o=>`<div class="chip ${sel===o?cls:''}" data-val="${o}">${o.toLowerCase()}</div>`).join('');
+    initChips(container,false,cls);
+  }
+  mk(document.getElementById('bmodal-source'),srcOpts,item.source,'sel-sage');
+  mk(document.getElementById('bmodal-body'),bodyOpts,item.bodyResponse,'sel-amber');
+  mk(document.getElementById('bmodal-loss'),lossOpts,item.ifNever,'sel-rose');
+  document.getElementById('bucket-modal').classList.add('open');
+}
+function saveBucketModal(){
+  const item=bucket.find(b=>b.id==activeBId);
+  if(!item)return;
+  item.source=getChips(document.getElementById('bmodal-source'))[0]||item.source;
+  item.bodyResponse=getChips(document.getElementById('bmodal-body'))[0]||item.bodyResponse;
+  item.ifNever=getChips(document.getElementById('bmodal-loss'))[0]||item.ifNever;
+  save(KEYS.bucket,bucket);renderBucket();
+}
+document.getElementById('bmodal-close').addEventListener('click',()=>{saveBucketModal();document.getElementById('bucket-modal').classList.remove('open');activeBId=null;});
+document.getElementById('bmodal-done').addEventListener('click',()=>{
+  const item=bucket.find(b=>b.id==activeBId);
+  if(item){item.tended=true;saveBucketModal();}
+  document.getElementById('bucket-modal').classList.remove('open');activeBId=null;
+});
+document.getElementById('bucket-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bucket-modal'))document.getElementById('bmodal-close').click();});
+
+// ══════════════════════════════════════════
+// INSIGHTS
+// ══════════════════════════════════════════
+function renderInsights(){
+  const totalActs=activities.length;
+  const totalBucket=bucket.length;
+  const overrideActs=activities.filter(a=>a.motivation&&(a.motivation.includes('Felt like an obligation / should')||a.motivation.includes('Avoiding discomfort, guilt, anxiety, conflict'))).length;
+  const feltMineActs=activities.filter(a=>a.locus==='Mostly mine').length;
+
+  document.getElementById('insight-summary').innerHTML=`
+    <div class="insight-card"><div class="insight-number">${totalActs}</div><div class="insight-label">activities logged</div></div>
+    <div class="insight-card"><div class="insight-number">${totalBucket}</div><div class="insight-label">items in bucket</div></div>
+    <div class="insight-card"><div class="insight-number">${overrideActs}</div><div class="insight-label">obligation / avoidance actions</div></div>
+    <div class="insight-card"><div class="insight-number">${feltMineActs}</div><div class="insight-label">felt as "mostly mine"</div></div>
+  `;
+
+  function makeBars(container,data,total,defaultColor){
+    if(!data||!Object.keys(data).length){container.innerHTML='<div style="font-size:13px;color:var(--bone-dim);">No data yet.</div>';return;}
+    container.innerHTML=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>`
+      <div class="bar-row">
+        <div class="bar-label">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/(total||1)*100)}%;background:${defaultColor};"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>
+    `).join('');
+  }
+
+  // source
+  const sources={};
+  bucket.forEach(b=>{if(b.source)sources[b.source]=(sources[b.source]||0)+1;});
+  makeBars(document.getElementById('source-bars'),sources,Object.values(sources).reduce((s,v)=>s+v,0)||1,'var(--sage)');
+
+  // unmet needs from evenings
+  const unmet={};
+  // also from activity logs
+  activities.forEach(a=>(a.unmetNeeds||[]).forEach(n=>{unmet[n]=(unmet[n]||0)+1;}));
+  makeBars(document.getElementById('unmet-bars'),unmet,Object.values(unmet).reduce((s,v)=>s+v,0)||1,'var(--rose)');
+
+  // after felt
+  const after={};
+  activities.forEach(a=>(a.afterFelt||[]).forEach(f=>{after[f]=(after[f]||0)+1;}));
+  const afterColors={'More alive':'var(--sage)','Connected to myself':'var(--sage)','Proud':'var(--sage)','Relieved':'var(--amber)','Neutral':'var(--bone-dim)','Drained':'var(--rose)','Resentful':'var(--rose)','Disconnected from myself':'var(--rose)'};
+  if(!Object.keys(after).length){document.getElementById('after-bars').innerHTML='<div style="font-size:13px;color:var(--bone-dim);">No data yet.</div>';}
+  else{
+    document.getElementById('after-bars').innerHTML=Object.entries(after).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+      <div class="bar-row">
+        <div class="bar-label">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/(Object.values(after).reduce((s,x)=>s+x,0)||1)*100)}%;background:${afterColors[k]||'var(--amber)'};"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>
+    `).join('');
+  }
+
+  // motivation
+  const mot={};
+  activities.forEach(a=>(a.motivation||[]).forEach(m=>{mot[m]=(mot[m]||0)+1;}));
+  makeBars(document.getElementById('motivation-bars'),mot,Object.values(mot).reduce((s,v)=>s+v,0)||1,'var(--amber)');
+
+  // narrative
+  const patterns=[];
+  if(totalActs>4){
+    const avgChoice=activities.filter(a=>a.choiceLevel!=null).reduce((s,a)=>s+(a.choiceLevel||0),0)/(activities.filter(a=>a.choiceLevel!=null).length||1);
+    patterns.push({icon:'◦',text:`<strong>Average felt choice: ${avgChoice.toFixed(1)}/10</strong> across ${totalActs} logged activities. ${avgChoice<5?'The data suggests more constraint than autonomy on average.':'Autonomy is broadly present, though individual moments may tell a different story.'}`});
+  }
+  if(overrideActs>0&&totalActs>3){
+    patterns.push({icon:'◦',text:`<strong>${overrideActs} activities</strong> were tagged as obligation or avoidance motivation. ${overrideActs>totalActs*0.4?'That\'s more than 40% of logged actions — worth sitting with without judgment.':''}`});
+  }
+  const topUnmet=Object.entries(unmet).sort((a,b)=>b[1]-a[1])[0];
+  if(topUnmet) patterns.push({icon:'◦',text:`<strong>${topUnmet[0]}</strong> is the most chronically unmet need across your log (${topUnmet[1]}×). This is a need that wants more than occasional attention.`});
+  const dominated=Object.entries(sources).sort((a,b)=>b[1]-a[1])[0];
+  if(dominated&&totalBucket>3) patterns.push({icon:'◦',text:`<strong>${dominated[0]}</strong> is the most common source in the bucket (${dominated[1]} items). Is this a pattern, or just what this season asks of you?`});
+
+  document.getElementById('narrative-patterns').innerHTML=patterns.length
+    ?patterns.map(p=>`<div class="pattern-item"><div class="pattern-icon">${p.icon}</div><div class="pattern-text">${p.text}</div></div>`).join('')
+    :'<div class="empty"><div class="empty-title">Not enough data yet</div>The patterns will surface as you log.</div>';
+}
+
+// ═══════════════════════════
