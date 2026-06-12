@@ -217,8 +217,8 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
   </div>
 
   <div class="card">
-    <div class="card-label">What is pulling at me</div>
-    <textarea rows="3" placeholder="Something unresolved, a conversation, a desire, a dread…" id="morning-pulling"></textarea>
+    <div class="card-label">What is unfinished or unresolved in me right now?</div>
+    <textarea rows="3" placeholder="What is still open, unresolved, or quietly asking for attention in you right now?" id="morning-pulling"></textarea>
   </div>
 
   <div class="card">
@@ -254,9 +254,14 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
   <p class="section-sub">Log each activity as it happens — or just after. Quick capture now, deepen later.</p>
 
   <!-- Quick capture -->
-  <div class="quick-capture">
-    <input type="text" placeholder="What did you just do?" id="quick-title" autocomplete="off">
-    <button class="btn btn-sm" id="quick-add">+ Log</button>
+  <div class="quick-capture" style="flex-wrap:wrap;gap:8px;">
+    <input type="text" placeholder="What did you just do?" id="quick-title" autocomplete="off" style="flex:1;min-width:160px;">
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+      <input type="time" id="quick-start" style="width:90px;padding:6px 8px;font-size:13px;background:var(--surface2);border:1px solid transparent;border-radius:8px;color:var(--bone);outline:none;">
+      <span style="font-size:12px;color:var(--bone-dim);">to</span>
+      <input type="time" id="quick-end" style="width:90px;padding:6px 8px;font-size:13px;background:var(--surface2);border:1px solid transparent;border-radius:8px;color:var(--bone);outline:none;">
+    </div>
+    <button class="btn btn-sm" id="quick-add" style="flex-shrink:0;">+ Log</button>
   </div>
 
   <div id="activity-list"></div>
@@ -472,8 +477,12 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
     <div class="modal-title" id="amodal-title">Expand this activity</div>
 
     <div class="modal-section">
-      <div class="modal-section-label">Duration (minutes)</div>
-      <input type="number" id="amodal-duration" min="1" max="480" placeholder="e.g. 30">
+      <div class="modal-section-label">Time slot</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="time" id="amodal-start" style="flex:1;padding:8px 10px;font-size:13px;">
+        <span style="font-size:12px;color:var(--bone-dim);">to</span>
+        <input type="time" id="amodal-end" style="flex:1;padding:8px 10px;font-size:13px;">
+      </div>
     </div>
 
     <div class="modal-section">
@@ -503,9 +512,10 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
     <div class="modal-section">
       <div class="modal-section-label">Motivation — why did I do this?</div>
       <div class="chip-group" id="amodal-motivation">
-        <div class="chip" data-val="Direct response to a felt need">felt need</div>
-        <div class="chip" data-val="Chosen because it aligns with my values">aligns with values</div>
-        <div class="chip" data-val="Felt like an obligation / should">obligation / should</div>
+        <div class="chip" data-val="Felt need">felt need</div>
+        <div class="chip" data-val="Desire / wanting this">desire / wanting this</div>
+        <div class="chip" data-val="Aligns with my values">aligns with values</div>
+        <div class="chip" data-val="Obligation / should">obligation / should</div>
         <div class="chip" data-val="Avoiding discomfort, guilt, anxiety, conflict">avoiding discomfort</div>
         <div class="chip" data-val="Habit / autopilot">habit / autopilot</div>
         <div class="chip" data-val="Mixed or unclear">mixed / unclear</div>
@@ -648,10 +658,7 @@ function formatShort(s){
     return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   }catch{return s;}
 }
-function timeNow(){
-  const n=new Date();
-  return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
-}
+
 
 document.getElementById('headerDate').textContent =
   new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long'});
@@ -754,7 +761,10 @@ function renderMorningHistory(){
   if(!mornings.length){el.innerHTML='<div class="empty"><div class="empty-title">Nothing held yet</div></div>';return;}
   el.innerHTML=mornings.slice(0,7).map(m=>`
     <div style="border-left:2px solid var(--surface2);padding-left:16px;margin-bottom:24px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;">${formatDate(m.date)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);">${formatDate(m.date)}</div>
+        <button class="btn btn-ghost btn-sm edit-morning-btn" data-date="${m.date}" style="font-size:10px;padding:3px 10px;">edit</button>
+      </div>
       ${m.energy?`<div style="font-size:12px;color:var(--bone-dim);margin-bottom:4px;">Energy <span style="color:var(--amber)">${m.energy}/5</span></div>`:''}
       ${m.emotions?.length?`<div style="margin-bottom:4px;">${m.emotions.map(e=>`<span style="font-size:12px;color:var(--sage);margin-right:6px;">${e}</span>`).join('')}</div>`:''}
       ${m.emotionOther?`<div style="font-size:12px;color:var(--sage);margin-bottom:4px;font-style:italic;">${m.emotionOther}</div>`:''}
@@ -762,6 +772,38 @@ function renderMorningHistory(){
       ${m.body?`<div style="font-size:12px;color:var(--bone-dim);">Body: ${m.body}</div>`:''}
     </div>
   `).join('');
+  el.querySelectorAll('.edit-morning-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>loadMorningForEdit(btn.dataset.date));
+  });
+}
+
+function loadMorningForEdit(date){
+  const m=mornings.find(x=>x.date===date);
+  if(!m)return;
+  // energy
+  selEnergy=m.energy||null;
+  document.querySelectorAll('#energy-dots .dot').forEach(d=>{
+    d.className='dot';
+    if(selEnergy&&parseInt(d.dataset.val)<=selEnergy){
+      const col=selEnergy<=2?'rose':selEnergy===3?'amber':'sage';
+      d.classList.add('active-'+col);
+    }
+  });
+  // emotions
+  setChips(document.getElementById('emotion-chips'),m.emotions||[]);
+  document.getElementById('emotion-other').value=m.emotionOther||'';
+  // avoiding
+  document.querySelectorAll('#avoiding-tags .avoidance-tag').forEach(t=>{
+    t.classList.toggle('sel',(m.avoiding||[]).includes(t.dataset.val));
+  });
+  document.getElementById('morning-avoiding').value='';
+  // fields
+  document.getElementById('morning-pulling').value=m.pulling||'';
+  document.getElementById('morning-body').value=m.body||'';
+  // scroll to top of morning tab
+  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('morning-saved-msg').style.display='none';
+  document.getElementById('save-morning').textContent='Update';
 }
 
 // ══════════════════════════════════════════
@@ -773,12 +815,14 @@ document.getElementById('quick-title').addEventListener('keydown',e=>{if(e.key==
 function addActivity(){
   const title=document.getElementById('quick-title').value.trim();
   if(!title)return;
+  const timeStart=document.getElementById('quick-start').value||null;
+  const timeEnd=document.getElementById('quick-end').value||null;
   const act={
     id:Date.now(),
     date:todayStr(),
-    time:timeNow(),
+    timeStart,
+    timeEnd,
     title,
-    duration:null,
     pulled:[],pulledOther:'',
     desireStrength:5,
     motivation:[],
@@ -792,6 +836,8 @@ function addActivity(){
   activities.unshift(act);
   save(KEYS.activities,activities);
   document.getElementById('quick-title').value='';
+  document.getElementById('quick-start').value='';
+  document.getElementById('quick-end').value='';
   renderActivities();
 }
 
@@ -826,13 +872,13 @@ function renderActivities(){
     const lc=a.locus?LOCUS_CLASS[a.locus]||'':'';
     const afterTags=a.afterFelt?.map(f=>`<span class="act-tag" style="color:${AFTER_COLOR[f]||'var(--bone-dim)'};border:1px solid ${AFTER_COLOR[f]||'var(--bone-dim)'};border-radius:10px;">${f}</span>`).join('')||'';
     const motTags=a.motivation?.map(m=>`<span class="act-tag" style="color:var(--bone-dim);font-size:10px;">${m}</span>`).join('')||'';
+    const slotStr=a.timeStart?(a.timeEnd?a.timeStart+' – '+a.timeEnd:a.timeStart):'';
     return `
       <div class="activity-card ${lc}" data-id="${a.id}">
         <div class="act-header">
           <div class="act-title">${a.title}</div>
           <div class="act-meta">
-            <span class="act-time">${a.time||''}</span>
-            ${a.duration?`<span class="act-time">${a.duration}m</span>`:''}
+            ${slotStr?`<span class="act-time">${slotStr}</span>`:''}
             <button class="act-expand-btn" data-id="${a.id}">expand</button>
           </div>
         </div>
@@ -866,32 +912,53 @@ function renderActivities(){
 // ── ACTIVITY MODAL ──
 let activeActId=null;
 
+// Helper: build a fresh chip group into a container element
+function buildChipGroup(container, opts, selected, cls, multi){
+  container.innerHTML = opts.map(o=>{
+    const sel = Array.isArray(selected) ? selected.includes(o) : selected===o;
+    return `<div class="chip${sel?' '+cls:''}" data-val="${o}">${o.toLowerCase()}</div>`;
+  }).join('');
+  container.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      if(!multi) container.querySelectorAll('.chip').forEach(x=>x.className='chip');
+      c.classList.toggle(cls);
+    });
+  });
+}
+
 function openActivityModal(id){
   const act=activities.find(a=>a.id==id);
   if(!act)return;
   activeActId=act.id;
 
   document.getElementById('amodal-title').textContent=act.title;
-  document.getElementById('amodal-duration').value=act.duration||'';
 
-  // pulled
-  clearChips(document.getElementById('amodal-pulled'));
-  setChips(document.getElementById('amodal-pulled'),act.pulled||[]);
-  initChips(document.getElementById('amodal-pulled'),true,'sel-amber');
+  // time slot
+  document.getElementById('amodal-start').value=act.timeStart||'';
+  document.getElementById('amodal-end').value=act.timeEnd||'';
+
+  // pulled toward (multi)
+  buildChipGroup(
+    document.getElementById('amodal-pulled'),
+    ['Rest','Food','Connection','Curiosity','Creativity','Achievement','Order','Movement','Nothing obvious'],
+    act.pulled||[], 'sel-amber', true
+  );
   document.getElementById('amodal-pulled-other').value=act.pulledOther||'';
 
-  // desire
+  // desire strength
   const dr=document.getElementById('amodal-desire-range');
   dr.value=act.desireStrength??5;
   document.getElementById('amodal-desire-val').textContent=dr.value;
   dr.oninput=()=>document.getElementById('amodal-desire-val').textContent=dr.value;
 
-  // motivation
-  clearChips(document.getElementById('amodal-motivation'));
-  setChips(document.getElementById('amodal-motivation'),act.motivation||[]);
-  initChips(document.getElementById('amodal-motivation'),true,'sel-amber');
+  // motivation (multi)
+  buildChipGroup(
+    document.getElementById('amodal-motivation'),
+    ['Felt need','Desire / wanting this','Aligns with my values','Obligation / should','Avoiding discomfort, guilt, anxiety, conflict','Habit / autopilot','Mixed or unclear'],
+    act.motivation||[], 'sel-amber', true
+  );
 
-  // choice
+  // choice level
   const cr=document.getElementById('amodal-choice-range');
   cr.value=act.choiceLevel??5;
   document.getElementById('amodal-choice-val').textContent=cr.value;
@@ -899,40 +966,49 @@ function openActivityModal(id){
 
   document.getElementById('amodal-thoughts').value=act.thoughts||'';
 
-  // unmet toggle
+  // unmet toggle (single)
   const hasUnmet=act.unmetNeeds&&act.unmetNeeds.length>0;
-  clearChips(document.getElementById('amodal-unmet-toggle'));
-  setChips(document.getElementById('amodal-unmet-toggle'),[hasUnmet?'Yes':'No']);
-  initChips(document.getElementById('amodal-unmet-toggle'),false,'sel-amber');
+  buildChipGroup(
+    document.getElementById('amodal-unmet-toggle'),
+    ['No','Yes'], hasUnmet?'Yes':'No', 'sel-amber', false
+  );
   document.getElementById('amodal-unmet-needs-wrap').style.display=hasUnmet?'block':'none';
-  clearChips(document.getElementById('amodal-unmet-needs'));
-  setChips(document.getElementById('amodal-unmet-needs'),act.unmetNeeds||[]);
-  initChips(document.getElementById('amodal-unmet-needs'),true,'sel-rose');
-
-  // after
-  clearChips(document.getElementById('amodal-after'));
-  setChips(document.getElementById('amodal-after'),act.afterFelt||[]);
-  initChips(document.getElementById('amodal-after'),true,'sel-amber');
-
-  // locus
-  clearChips(document.getElementById('amodal-locus'));
-  setChips(document.getElementById('amodal-locus'),[act.locus||'']);
-  initChips(document.getElementById('amodal-locus'),false,'sel-sage');
-
-  // would choose
-  clearChips(document.getElementById('amodal-would-choose'));
-  setChips(document.getElementById('amodal-would-choose'),[act.wouldChoose||'']);
-  initChips(document.getElementById('amodal-would-choose'),false,'sel-amber');
-
-  // unmet toggle show/hide
   document.getElementById('amodal-unmet-toggle').querySelectorAll('.chip').forEach(c=>{
     c.addEventListener('click',()=>{
       setTimeout(()=>{
-        const sel=getChips(document.getElementById('amodal-unmet-toggle'));
-        document.getElementById('amodal-unmet-needs-wrap').style.display=sel.includes('Yes')?'block':'none';
-      },50);
+        const v=getChips(document.getElementById('amodal-unmet-toggle'));
+        document.getElementById('amodal-unmet-needs-wrap').style.display=v.includes('Yes')?'block':'none';
+      },20);
     });
   });
+
+  // unmet needs (multi)
+  buildChipGroup(
+    document.getElementById('amodal-unmet-needs'),
+    ['Rest & Recovery','Solitude','Connection','Body & Sensory Aliveness','Joy, Pleasure, Delight','Expression','Meaning-Making','Intellectual Nourishment','Emotional Nourishment','Freedom, Autonomy & Self-Realisation','Belonging','Play','Safety','Satiety','Being Known','Transcendence'],
+    act.unmetNeeds||[], 'sel-rose', true
+  );
+
+  // after felt (multi)
+  buildChipGroup(
+    document.getElementById('amodal-after'),
+    ['More alive','Relieved','Neutral','Drained','Resentful','Proud','Connected to myself','Disconnected from myself'],
+    act.afterFelt||[], 'sel-amber', true
+  );
+
+  // locus (single)
+  buildChipGroup(
+    document.getElementById('amodal-locus'),
+    ['Mostly mine','Mixed','Mostly inherited from others','Unsure'],
+    act.locus||null, 'sel-sage', false
+  );
+
+  // would choose (single)
+  buildChipGroup(
+    document.getElementById('amodal-would-choose'),
+    ['Yes','No','Partly','Unsure'],
+    act.wouldChoose||null, 'sel-amber', false
+  );
 
   document.getElementById('activity-modal').classList.add('open');
 }
@@ -940,8 +1016,8 @@ function openActivityModal(id){
 function saveActivityModal(){
   const act=activities.find(a=>a.id==activeActId);
   if(!act)return;
-  const dur=parseInt(document.getElementById('amodal-duration').value);
-  act.duration=isNaN(dur)?null:dur;
+  act.timeStart=document.getElementById('amodal-start').value||null;
+  act.timeEnd=document.getElementById('amodal-end').value||null;
   act.pulled=getChips(document.getElementById('amodal-pulled'));
   act.pulledOther=document.getElementById('amodal-pulled-other').value.trim();
   act.desireStrength=parseInt(document.getElementById('amodal-desire-range').value);
@@ -1149,7 +1225,7 @@ document.getElementById('bucket-modal').addEventListener('click',e=>{if(e.target
 function renderInsights(){
   const totalActs=activities.length;
   const totalBucket=bucket.length;
-  const overrideActs=activities.filter(a=>a.motivation&&(a.motivation.includes('Felt like an obligation / should')||a.motivation.includes('Avoiding discomfort, guilt, anxiety, conflict'))).length;
+  const overrideActs=activities.filter(a=>a.motivation&&(a.motivation.includes('Obligation / should')||a.motivation.includes('Avoiding discomfort, guilt, anxiety, conflict'))).length;
   const feltMineActs=activities.filter(a=>a.locus==='Mostly mine').length;
 
   document.getElementById('insight-summary').innerHTML=`
