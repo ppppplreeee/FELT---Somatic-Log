@@ -364,6 +364,7 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
           <div class="chip-group" id="bucket-loss">
             <div class="chip" data-val="Something real would be lost">something real would be lost</div>
             <div class="chip" data-val="I'd feel relieved">I'd feel relieved</div>
+            <div class="chip" data-val="Probably no impact">probably no impact</div>
             <div class="chip" data-val="I genuinely don't know">I genuinely don't know</div>
           </div>
         </div>
@@ -585,6 +586,13 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
         <div class="chip" data-val="Mostly inherited from others">mostly inherited</div>
         <div class="chip" data-val="Unsure">unsure</div>
       </div>
+      <div class="orienting-label" style="margin-top:12px;margin-bottom:8px;">If I had never done this:</div>
+      <div class="chip-group" id="amodal-if-never">
+        <div class="chip" data-val="Something real would have been lost">something real would have been lost</div>
+        <div class="chip" data-val="I would have felt relieved">I would have felt relieved</div>
+        <div class="chip" data-val="Probably no impact">probably no impact</div>
+        <div class="chip" data-val="I genuinely don't know">I genuinely don't know</div>
+      </div>
       <div class="orienting-label" style="margin-top:12px;margin-bottom:8px;">If nobody expected anything from me, would I still choose this?</div>
       <div class="chip-group" id="amodal-would-choose">
         <div class="chip" data-val="Yes">yes</div>
@@ -622,7 +630,33 @@ textarea::placeholder, input::placeholder { color: var(--bone-dim); font-style: 
       <div class="chip-group" id="bmodal-loss"></div>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:4px;">
+    <div style="border-top:1px solid var(--surface2);padding-top:14px;margin-top:4px;">
+      <button class="schema-toggle" id="bmodal-schema-toggle"><span id="bmodal-schema-arrow">▸</span> Tending schema</button>
+      <div class="schema-fields" id="bmodal-schema-fields">
+        <div class="modal-section">
+          <div class="modal-section-label">Domain</div>
+          <div class="chip-group" id="bmodal-domain"></div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-label">Mode</div>
+          <div class="chip-group" id="bmodal-mode"></div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-label">Temporal</div>
+          <div class="chip-group" id="bmodal-temporal"></div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-label">Polarity</div>
+          <div class="chip-group" id="bmodal-polarity"></div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-label">Needs</div>
+          <div class="chip-group" id="bmodal-needs"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
       <button class="btn btn-ghost" id="bmodal-close" style="flex:1;">Close</button>
       <button class="btn" id="bmodal-done" style="flex:1;">Mark tended</button>
     </div>
@@ -709,13 +743,13 @@ document.getElementById('avoiding-tags').querySelectorAll('.avoidance-tag').forE
   t.addEventListener('click',()=>t.classList.toggle('sel'));
 });
 initChips(document.getElementById('eve-locus'),false,'sel-amber');
-initChips(document.getElementById('bucket-source'),false,'sel-sage');
-initChips(document.getElementById('bucket-body'),false,'sel-amber');
-initChips(document.getElementById('bucket-loss'),false,'sel-rose');
-initChips(document.getElementById('bucket-domain'),false,'sel-amber');
-initChips(document.getElementById('bucket-mode'),false,'sel-amber');
-initChips(document.getElementById('bucket-temporal'),false,'sel-amber');
-initChips(document.getElementById('bucket-polarity'),false,'sel-amber');
+initChips(document.getElementById('bucket-source'),true,'sel-sage');
+initChips(document.getElementById('bucket-body'),true,'sel-amber');
+initChips(document.getElementById('bucket-loss'),true,'sel-rose');
+initChips(document.getElementById('bucket-domain'),true,'sel-amber');
+initChips(document.getElementById('bucket-mode'),true,'sel-amber');
+initChips(document.getElementById('bucket-temporal'),true,'sel-amber');
+initChips(document.getElementById('bucket-polarity'),true,'sel-amber');
 initChips(document.getElementById('bucket-needs'),true,'sel-amber');
 
 // ══════════════════════════════════════════
@@ -1003,6 +1037,13 @@ function openActivityModal(id){
     act.locus||null, 'sel-sage', false
   );
 
+  // if never (single)
+  buildChipGroup(
+    document.getElementById('amodal-if-never'),
+    ["Something real would have been lost","I would have felt relieved","Probably no impact","I genuinely don't know"],
+    act.ifNever||null, 'sel-rose', false
+  );
+
   // would choose (single)
   buildChipGroup(
     document.getElementById('amodal-would-choose'),
@@ -1028,6 +1069,7 @@ function saveActivityModal(){
   act.unmetNeeds=unmetSel.includes('Yes')?getChips(document.getElementById('amodal-unmet-needs')):[];
   act.afterFelt=getChips(document.getElementById('amodal-after'));
   act.locus=getChips(document.getElementById('amodal-locus'))[0]||null;
+  act.ifNever=getChips(document.getElementById('amodal-if-never'))[0]||null;
   act.wouldChoose=getChips(document.getElementById('amodal-would-choose'))[0]||null;
   save(KEYS.activities,activities);
   renderActivities();
@@ -1121,13 +1163,13 @@ document.getElementById('save-bucket-item').addEventListener('click',()=>{
     id:Date.now(),
     title,
     createdAt:new Date().toISOString(),
-    source:getChips(document.getElementById('bucket-source'))[0]||null,
-    bodyResponse:getChips(document.getElementById('bucket-body'))[0]||null,
-    ifNever:getChips(document.getElementById('bucket-loss'))[0]||null,
-    domain:getChips(document.getElementById('bucket-domain'))[0]||null,
-    mode:getChips(document.getElementById('bucket-mode'))[0]||null,
-    temporal:getChips(document.getElementById('bucket-temporal'))[0]||null,
-    polarity:getChips(document.getElementById('bucket-polarity'))[0]||null,
+    source:getChips(document.getElementById('bucket-source')),
+    bodyResponse:getChips(document.getElementById('bucket-body')),
+    ifNever:getChips(document.getElementById('bucket-loss')),
+    domain:getChips(document.getElementById('bucket-domain')),
+    mode:getChips(document.getElementById('bucket-mode')),
+    temporal:getChips(document.getElementById('bucket-temporal')),
+    polarity:getChips(document.getElementById('bucket-polarity')),
     needs:getChips(document.getElementById('bucket-needs')),
     tended:false
   };
@@ -1147,20 +1189,28 @@ function renderBucket(){
   const SC={'Genuine desire':'var(--sage)','Felt need':'var(--sage)','Sense of obligation':'var(--rose)','External expectation':'var(--rose)','Unclear':'var(--bone-dim)'};
   const BC={'Expansive':'var(--sage)','Contracted':'var(--rose)','Neutral':'var(--bone-dim)','Mixed':'var(--amber)'};
 
+  function tagList(vals,color){
+    if(!vals||!vals.length)return'';
+    const arr=Array.isArray(vals)?vals:[vals];
+    return arr.map(v=>`<span style="font-size:11px;color:${color};border:1px solid ${color};border-radius:10px;padding:2px 8px;">${v}</span>`).join('');
+  }
+
   function bHTML(item){
-    const sc=item.source?SC[item.source]||'var(--bone-dim)':null;
-    const bc=item.bodyResponse?BC[item.bodyResponse]||'var(--bone-dim)':null;
+    const domains=Array.isArray(item.domain)?item.domain:(item.domain?[item.domain]:[]);
     return `<div class="bucket-item" data-id="${item.id}" style="opacity:${item.tended?.5:1};">
       <div style="font-size:14px;color:var(--bone);margin-bottom:8px;${item.tended?'text-decoration:line-through;':''}">${item.title}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-        ${item.source?`<span style="font-size:11px;color:${sc};border:1px solid ${sc};border-radius:10px;padding:2px 8px;">${item.source}</span>`:''}
-        ${item.bodyResponse?`<span style="font-size:11px;color:${bc};border:1px solid ${bc};border-radius:10px;padding:2px 8px;">${item.bodyResponse}</span>`:''}
-        ${item.ifNever?`<span style="font-size:11px;color:var(--bone-dim);">${item.ifNever}</span>`:''}
-        ${item.domain?`<span style="font-size:10px;color:var(--bone-dim);background:var(--surface2);border-radius:6px;padding:2px 8px;">${item.domain}</span>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;">
+        ${tagList(item.source,'var(--sage)')}
+        ${tagList(item.bodyResponse,'var(--amber)')}
+        ${tagList(item.ifNever,'var(--bone-dim)')}
       </div>
+      ${domains.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${domains.map(d=>`<span style="font-size:10px;color:var(--bone-dim);background:var(--surface2);border-radius:6px;padding:2px 8px;">${d}</span>`).join('')}</div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
         <span style="font-size:10px;color:var(--bone-dim);">${formatShort(item.createdAt?.slice(0,10)||'')}</span>
-        <button class="remove-btn del-bucket" data-id="${item.id}" style="font-size:12px;">remove</button>
+        <div style="display:flex;gap:8px;">
+          ${item.tended?`<button class="remove-btn restore-bucket" data-id="${item.id}" style="font-size:12px;color:var(--sage);">restore</button>`:''}
+          <button class="remove-btn del-bucket" data-id="${item.id}" style="font-size:12px;">remove</button>
+        </div>
       </div>
     </div>`;
   }
@@ -1173,13 +1223,23 @@ function renderBucket(){
   el.innerHTML=html;
 
   el.querySelectorAll('.bucket-item').forEach(c=>{
-    c.addEventListener('click',(e)=>{if(e.target.classList.contains('del-bucket'))return;openBucketModal(c.dataset.id);});
+    c.addEventListener('click',(e)=>{
+      if(e.target.classList.contains('del-bucket')||e.target.classList.contains('restore-bucket'))return;
+      openBucketModal(c.dataset.id);
+    });
   });
   el.querySelectorAll('.del-bucket').forEach(b=>{
     b.addEventListener('click',(e)=>{
       e.stopPropagation();
       bucket=bucket.filter(x=>x.id!=b.dataset.id);
       save(KEYS.bucket,bucket);renderBucket();
+    });
+  });
+  el.querySelectorAll('.restore-bucket').forEach(b=>{
+    b.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const item=bucket.find(x=>x.id==b.dataset.id);
+      if(item){item.tended=false;save(KEYS.bucket,bucket);renderBucket();}
     });
   });
 }
@@ -1191,24 +1251,65 @@ function openBucketModal(id){
   if(!item)return;
   activeBId=id;
   document.getElementById('bmodal-title').textContent=item.title;
-  const srcOpts=['Genuine desire','Felt need','Sense of obligation','External expectation','Unclear'];
-  const bodyOpts=['Expansive','Neutral','Contracted','Mixed'];
-  const lossOpts=["Something real would be lost","I'd feel relieved","I genuinely don't know"];
-  function mk(container,opts,sel,cls){
-    container.innerHTML=opts.map(o=>`<div class="chip ${sel===o?cls:''}" data-val="${o}">${o.toLowerCase()}</div>`).join('');
-    initChips(container,false,cls);
+
+  // normalise legacy single-value fields to arrays
+  function toArr(v){ if(!v)return[]; return Array.isArray(v)?v:[v]; }
+
+  buildChipGroup(document.getElementById('bmodal-source'),
+    ['Genuine desire','Felt need','Sense of obligation','External expectation','Unclear'],
+    toArr(item.source),'sel-sage',true);
+  buildChipGroup(document.getElementById('bmodal-body'),
+    ['Expansive','Neutral','Contracted','Mixed'],
+    toArr(item.bodyResponse),'sel-amber',true);
+  buildChipGroup(document.getElementById('bmodal-loss'),
+    ["Something real would be lost","I'd feel relieved","Probably no impact","I genuinely don't know"],
+    toArr(item.ifNever),'sel-rose',true);
+
+  // schema
+  buildChipGroup(document.getElementById('bmodal-domain'),
+    ['physical','practical','relational','emotional','intellectual','spiritual'],
+    toArr(item.domain),'sel-amber',true);
+  buildChipGroup(document.getElementById('bmodal-mode'),
+    ['Receptive','Expressive'],
+    toArr(item.mode),'sel-amber',true);
+  buildChipGroup(document.getElementById('bmodal-temporal'),
+    ['Past','Present','Future'],
+    toArr(item.temporal),'sel-amber',true);
+  buildChipGroup(document.getElementById('bmodal-polarity'),
+    ['Aliveness','Maintenance'],
+    toArr(item.polarity),'sel-amber',true);
+  buildChipGroup(document.getElementById('bmodal-needs'),
+    ['Joy, Pleasure, Delight','Rest & Recovery','Connection','Expression','Growth','Meaning-Making','Transcendence','Body & Sensory Aliveness','Intellectual Nourishment','Emotional Nourishment','Being Known','Belonging','Freedom, Autonomy & Self-Realisation','Care, Tending & Nurturing towards Self and Relationships','Stability & Consistency','Security','Safety','Satiety','Play','Solitude','Impact & Contribution','Planning','Management, Strategy & Fructification','Resources, Knowledge & Skills Building','Comfort, Home-Making & Ease'],
+    toArr(item.needs),'sel-amber',true);
+
+  // schema toggle
+  const sf=document.getElementById('bmodal-schema-fields');
+  const sa=document.getElementById('bmodal-schema-arrow');
+  sf.classList.remove('open');
+  sa.textContent='▸';
+  document.getElementById('bmodal-schema-toggle').onclick=()=>{
+    sf.classList.toggle('open');
+    sa.textContent=sf.classList.contains('open')?'▾':'▸';
+  };
+
+  // auto-open schema if item already has schema data
+  if(item.domain?.length||item.mode?.length||item.needs?.length){
+    sf.classList.add('open');sa.textContent='▾';
   }
-  mk(document.getElementById('bmodal-source'),srcOpts,item.source,'sel-sage');
-  mk(document.getElementById('bmodal-body'),bodyOpts,item.bodyResponse,'sel-amber');
-  mk(document.getElementById('bmodal-loss'),lossOpts,item.ifNever,'sel-rose');
+
   document.getElementById('bucket-modal').classList.add('open');
 }
 function saveBucketModal(){
   const item=bucket.find(b=>b.id==activeBId);
   if(!item)return;
-  item.source=getChips(document.getElementById('bmodal-source'))[0]||item.source;
-  item.bodyResponse=getChips(document.getElementById('bmodal-body'))[0]||item.bodyResponse;
-  item.ifNever=getChips(document.getElementById('bmodal-loss'))[0]||item.ifNever;
+  item.source=getChips(document.getElementById('bmodal-source'));
+  item.bodyResponse=getChips(document.getElementById('bmodal-body'));
+  item.ifNever=getChips(document.getElementById('bmodal-loss'));
+  item.domain=getChips(document.getElementById('bmodal-domain'));
+  item.mode=getChips(document.getElementById('bmodal-mode'));
+  item.temporal=getChips(document.getElementById('bmodal-temporal'));
+  item.polarity=getChips(document.getElementById('bmodal-polarity'));
+  item.needs=getChips(document.getElementById('bmodal-needs'));
   save(KEYS.bucket,bucket);renderBucket();
 }
 document.getElementById('bmodal-close').addEventListener('click',()=>{saveBucketModal();document.getElementById('bucket-modal').classList.remove('open');activeBId=null;});
